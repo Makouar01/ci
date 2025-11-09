@@ -29,7 +29,7 @@ pipeline {
     stage('Docker Build & Push (Windows)') {
       steps {
         script {
-          docker.withRegistry('', 'dockerhub') {
+          docker.withRegistry('', 'dockerhub-credentials') {
             def app = docker.build("${DOCKER_HUB_REPO}:${BUILD_NUMBER}")
             app.push()
             app.push("latest")
