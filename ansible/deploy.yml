@@ -1,0 +1,17 @@
+---
+- name: Deploy Spring Boot Docker app
+  hosts: production
+  become: yes
+  vars:
+    container_name: springboot-hello
+  tasks:
+    - name: Stop container if exists
+      shell: |
+        docker stop {{ container_name }} || true
+        docker rm {{ container_name }} || true
+
+    - name: Pull new image
+      shell: docker pull {{ image }}
+
+    - name: Run container
+      shell: docker run -d --name {{ container_name }} -p 8080:8080 {{ image }}
