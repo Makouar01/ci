@@ -31,8 +31,7 @@ pipeline {
         script {
           docker.withRegistry('', 'dockerhub-credentials') {
             def app = docker.build("${DOCKER_HUB_REPO}:${BUILD_NUMBER}")
-            app.push()
-            app.push("latest")
+
           }
         }
       }
