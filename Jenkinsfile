@@ -37,12 +37,13 @@ pipeline {
       }
     }
 
-    stage('Deploy via Ansible (in WSL)') {
+stage('Deploy via Ansible (in WSL)') {
       steps {
-        sshagent([SSH_CRED]) {
+        script {
+          // Exécute la commande dans WSL Ubuntu
           bat """
-          wsl ansible-playbook -i ansible/inventory.ini ansible/deploy.yml ^
-            --extra-vars "image=${DOCKER_HUB_REPO}:${BUILD_NUMBER} host=${SERVER_HOST}"
+          wsl ansible-playbook -i /mnt/c/Users/MAKOUAR/ansible/inventory.ini /mnt/c/Users/MAKOUAR/ansible/deploy.yml ^
+            --extra-vars "image=${DOCKER_HUB_REPO}:${BUILD_NUMBER} host=${SERVER_HOST} ansible_user=${SSH_USER}"
           """
         }
       }
