@@ -2,20 +2,22 @@ pipeline {
   agent any
 
   environment {
-    DOCKER_HUB_REPO = 'aderrahim298/ci'
+    DOCKER_HUB_REPO = 'abderrahim298/ci'
     SSH_CRED = 'ssh-server'
     SERVER_HOST = '192.168.137.130'
   }
 
   stages {
+
     stage('Checkout') {
       steps {
-        git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/your/repo.git'
+        git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Makouar01/ci.git'
       }
     }
-    stage('Build') {
+
+    stage('Build Maven (Windows)') {
       steps {
-        sh 'mvn -B clean package -DskipTests'
+        bat 'mvn -B clean package -DskipTests'
       }
       post {
         success {
@@ -23,7 +25,8 @@ pipeline {
         }
       }
     }
-    stage('Docker Build & Push') {
+
+    stage('Docker Build & Push (Windows)') {
       steps {
         script {
           docker.withRegistry('', 'dockerhub') {
@@ -34,11 +37,12 @@ pipeline {
         }
       }
     }
-    stage('Deploy via Ansible') {
+
+    stage('Deploy via Ansible (in WSL)') {
       steps {
         sshagent([SSH_CRED]) {
-          sh """
-          ansible-playbook -i ansible/inventory.ini ansible/deploy.yml \
+          bat """
+          wsl ansible-playbook -i ansible/inventory.ini ansible/deploy.yml ^
             --extra-vars "image=${DOCKER_HUB_REPO}:${BUILD_NUMBER} host=${SERVER_HOST}"
           """
         }
@@ -47,7 +51,11 @@ pipeline {
   }
 
   post {
-    success { echo '✅ Déploiement réussi' }
-    failure { echo '❌ Échec du pipeline' }
+    success {
+      echo '✅ Déploiement réussi sur la VM Linux !'
+    }
+    failure {
+      echo '❌ Échec du pipeline'
+    }
   }
 }
