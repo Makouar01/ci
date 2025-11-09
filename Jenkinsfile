@@ -3,15 +3,18 @@ pipeline {
 
   environment {
     DOCKER_HUB_REPO = 'abderrahim298/ci'
-    SSH_CRED = 'ssh-server'
+    DOCKERHUB_CRED = 'dockerhub-credentials' // ID du credential Docker Hub dans Jenkins
     SERVER_HOST = '192.168.137.130'
+    SSH_USER = 'makouar' // Nom d’utilisateur SSH sur la VM
   }
 
   stages {
 
     stage('Checkout') {
       steps {
-        git branch: 'main', credentialsId: 'github-credentials', url: 'https://github.com/Makouar01/ci.git'
+        git branch: 'main',
+            credentialsId: 'github-credentials',
+            url: 'https://github.com/Makouar01/ci.git'
       }
     }
 
@@ -29,18 +32,22 @@ pipeline {
     stage('Docker Build & Push (Windows)') {
       steps {
         script {
-          docker.withRegistry('', 'dockerhub-credentials') {
-            def app = docker.build("${DOCKER_HUB_REPO}:${BUILD_NUMBER}")
-
+          withDockerRegistry([credentialsId: DOCKERHUB_CRED, url: '']) {
+            bat """
+              docker build -t ${DOCKER_HUB_REPO}:${BUILD_NUMBER} .
+              docker push ${DOCKER_HUB_REPO}:${BUILD_NUMBER}
+              docker tag ${DOCKER_HUB_REPO}:${BUILD_NUMBER} ${DOCKER_HUB_REPO}:latest
+              docker push ${DOCKER_HUB_REPO}:latest
+            """
           }
         }
       }
     }
 
-stage('Deploy via Ansible (in WSL)') {
+    stage('Deploy via Ansible (in WSL)') {
       steps {
         script {
-          // Exécute la commande dans WSL Ubuntu
+          // Exécution de Ansible depuis Ubuntu WSL
           bat """
           wsl ansible-playbook -i /mnt/c/Users/MAKOUAR/ansible/inventory.ini /mnt/c/Users/MAKOUAR/ansible/deploy.yml ^
             --extra-vars "image=${DOCKER_HUB_REPO}:${BUILD_NUMBER} host=${SERVER_HOST} ansible_user=${SSH_USER}"
