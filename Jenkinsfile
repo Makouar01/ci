@@ -35,9 +35,7 @@ pipeline {
           withDockerRegistry([credentialsId: DOCKERHUB_CRED, url: '']) {
             bat """
               docker build -t ${DOCKER_HUB_REPO}:${BUILD_NUMBER} .
-              docker push ${DOCKER_HUB_REPO}:${BUILD_NUMBER}
-              docker tag ${DOCKER_HUB_REPO}:${BUILD_NUMBER} ${DOCKER_HUB_REPO}:latest
-              docker push ${DOCKER_HUB_REPO}:latest
+
             """
           }
         }
